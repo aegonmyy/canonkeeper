@@ -83,7 +83,10 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
 
 /** Recursively find the first http(s) URL in an arbitrary tool response. */
 export function findAssetUrl(x: unknown): string | undefined {
-  if (typeof x === "string") return /^https?:\/\//.test(x) ? x : undefined;
+  if (typeof x === "string") {
+    const m = x.match(/https?:\/\/[^\s)"'\]]+/);
+    return m ? m[0].replace(/[.,;:]+$/, "") : undefined;
+  }
   if (Array.isArray(x)) {
     for (const v of x) {
       const u = findAssetUrl(v);
