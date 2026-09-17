@@ -28,6 +28,7 @@ function renderEntities() {
           <strong>${esc(e.name)}</strong>
           <span class="version">v${e.version}</span>
         </div>
+        ${e.anchorUrl ? `<img class="entity-anchor" src="${e.anchorUrl}" alt="canon anchor" loading="lazy">` : ""}
         <div class="entity-body">${esc(e.description)}</div>
         <div class="entity-actions">
           <button class="link edit">edit canon</button>
@@ -37,37 +38,50 @@ function renderEntities() {
     .join("");
 }
 
+function runCard(r, label) {
+  if (!r)
+    return `<div class="run arm empty-arm"><div class="run-meta"><span class="muted">no ${label} render yet</span></div></div>`;
+  const score = r.critique.score < 0 ? "—" : r.critique.score.toFixed(2);
+  const scoreClass = r.critique.score < 0 ? "" : r.critique.score >= 0.7 ? "good" : "bad";
+  const stale = (r.stale ?? []).length > 0;
+  const chips = r.canonRefs
+    .map((ref) => {
+      const ent = state.entities.find((e) => e.id === ref.entityId);
+      const staleChip = stale && (r.stale ?? []).some((s) => s.entityId === ref.entityId);
+      return `<span class="chip ${staleChip ? "chip-stale" : ""}">${esc(ent?.name ?? ref.entityId)} v${ref.version}${staleChip ? " ⚠" : ""}</span>`;
+    })
+    .join(" ");
+  return `<div class="run arm ${stale ? "is-stale" : ""}">
+    <img src="${r.resultUrl}" alt="scene render" loading="lazy">
+    <div class="run-meta">
+      <div class="run-top">
+        <span class="score ${scoreClass}">${score}</span>
+        <span class="mode-tag ${r.useCanon ? "on" : "off"}">${r.useCanon ? "canon ON" : "canon OFF"}</span>
+        ${stale ? '<span class="chip chip-stale">STALE</span>' : ""}
+      </div>
+      <div class="chips">${chips || '<span class="muted">no canon refs</span>'}</div>
+      <p class="note">${esc(r.critique.note)}</p>
+    </div>
+  </div>`;
+}
+
 function renderRuns() {
   if (!state.runs.length) return;
-  // latest run per scene, newest last — SPARQL order is arbitrary, sort by time
-  const latest = new Map();
-  for (const r of [...state.runs].sort((a, b) => a.at.localeCompare(b.at)))
-    latest.set(r.sceneId, r);
-  $("#run-list").innerHTML = [...latest.values()]
-    .map((r) => {
-      const score = r.critique.score < 0 ? "—" : r.critique.score.toFixed(2);
-      const scoreClass = r.critique.score < 0 ? "" : r.critique.score >= 0.7 ? "good" : "bad";
-      const stale = (r.stale ?? []).length > 0;
-      const chips = r.canonRefs
-        .map((ref) => {
-          const ent = state.entities.find((e) => e.id === ref.entityId);
-          const staleChip = stale && (r.stale ?? []).some((s) => s.entityId === ref.entityId);
-          return `<span class="chip ${staleChip ? "chip-stale" : ""}">${esc(ent?.name ?? ref.entityId)} v${ref.version}${staleChip ? " ⚠" : ""}</span>`;
-        })
-        .join(" ");
-      return `<div class="run ${stale ? "is-stale" : ""}">
-        <img src="${r.resultUrl}" alt="scene render" loading="lazy">
-        <div class="run-meta">
-          <div class="run-top">
-            <span class="score ${scoreClass}">${score}</span>
-            <span class="mode-tag ${r.useCanon ? "on" : "off"}">${r.useCanon ? "canon ON" : "canon OFF"}</span>
-            ${stale ? '<span class="chip chip-stale">STALE — canon changed</span>' : ""}
-          </div>
-          <div class="chips">${chips || '<span class="muted">no canon refs</span>'}</div>
-          <p class="note">${esc(r.critique.note)}</p>
-        </div>
-      </div>`;
-    })
+  // A/B per scene: latest canon-ON arm next to latest canon-OFF arm.
+  const runs = [...state.runs].sort((a, b) => a.at.localeCompare(b.at));
+  const scenes = new Map();
+  for (const r of runs) {
+    const s = scenes.get(r.sceneId) ?? { on: null, off: null };
+    s[r.useCanon ? "on" : "off"] = r;
+    scenes.set(r.sceneId, s);
+  }
+  $("#run-list").innerHTML = [...scenes.entries()]
+    .map(
+      ([sceneId, arms]) => `<div class="scene-group">
+        <div class="scene-label">${esc(arms.on ? arms.on.sceneText : arms.off.sceneText)}</div>
+        <div class="run-pair">${runCard(arms.on, "canon-ON")}${runCard(arms.off, "canon-OFF")}</div>
+      </div>`,
+    )
     .join("");
 }
 

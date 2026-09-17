@@ -100,7 +100,13 @@ button:disabled { opacity: 0.5; cursor: wait; }
   font-size: 13px;
 }
 
-.run-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 12px; }
+.run-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.scene-group { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #101018; }
+.scene-label { font: 11px var(--mono); color: var(--muted); margin-bottom: 8px; }
+.run-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.run.arm { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #14141e; }
+.run.arm.empty-arm { display: flex; align-items: center; min-height: 80px; }
+.entity-anchor { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; margin-top: 8px; border: 1px solid var(--line); }
 .run { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #101018; }
 .run.is-stale { border-color: var(--stale); }
 .run img { width: 100%; display: block; aspect-ratio: 16/9; object-fit: cover; background: #000; }
