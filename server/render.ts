@@ -170,7 +170,9 @@ export async function rerenderStale(): Promise<Run[]> {
   const entities = await listEntities();
   const latestByScene = new Map<string, Run>();
   const runs = (await listRuns()).sort((a, b) => a.at.localeCompare(b.at));
-  for (const r of runs) latestByScene.set(r.sceneId, r);
+  // Only canon-ON arms make staleness promises; an OFF render must not
+  // shadow the ON arm of the same scene.
+  for (const r of runs) if (r.useCanon) latestByScene.set(r.sceneId, r);
   const stale = [...latestByScene.values()].filter(
     (r) => r.useCanon && staleRefs(r, entities).length > 0,
   );
