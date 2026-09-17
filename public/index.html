@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CanonKeeper</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="title-row">
+    <h1>Canon<span class="accent">Keeper</span></h1>
+    <div id="modes" class="modes"></div>
+  </div>
+  <p class="tag">A script supervisor for AI video — canon lives as Knowledge Assets on the DKG,
+     every render consults it, corrections propagate.</p>
+</header>
+
+<main>
+  <section class="panel" id="canon-panel">
+    <h2>Canon <small>Knowledge Assets · versioned</small></h2>
+    <div id="entity-list" class="entity-list"></div>
+    <details class="add-entity">
+      <summary>+ add entity</summary>
+      <form id="add-entity-form">
+        <select name="kind" required>
+          <option value="character">character</option>
+          <option value="prop">prop</option>
+          <option value="location">location</option>
+          <option value="fact">fact</option>
+        </select>
+        <input name="name" placeholder="name" required>
+        <textarea name="description" placeholder="continuity tokens — injected verbatim into prompts" required></textarea>
+        <button type="submit">create</button>
+      </form>
+    </details>
+  </section>
+
+  <section class="panel" id="board-panel">
+    <h2>Storyboard <small>one scene per line · @mentions pull canon</small></h2>
+    <textarea id="scenes" rows="9" spellcheck="false"></textarea>
+    <div class="actions">
+      <button id="render-canon" class="primary">Render — canon ON</button>
+      <button id="render-control" class="warn">Control — canon OFF</button>
+    </div>
+    <div id="stale-banner" class="stale-banner" hidden>
+      <span id="stale-text"></span>
+      <button id="rerender-stale" class="primary">Re-render stale scenes</button>
+    </div>
+  </section>
+
+  <section class="panel" id="evidence-panel">
+    <h2>Evidence <small>run ledger · drift grades · staleness</small></h2>
+    <div id="run-list" class="run-list"><p class="empty">No renders yet.</p></div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

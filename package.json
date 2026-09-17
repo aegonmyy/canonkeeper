@@ -1,0 +1,21 @@
+{
+  "name": "canonkeeper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Verifiable canon for episodic AI video — Livepeer Agent + OriginTrail DKG (Livepeer Agent Hackathon, Track 2)",
+  "scripts": {
+    "dev": "tsx watch server/index.ts",
+    "start": "tsx server/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
