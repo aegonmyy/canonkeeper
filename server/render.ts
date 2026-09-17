@@ -1,7 +1,7 @@
 import { config } from "./config.js";
 import { callTool, findAssetUrl, mockSceneImage, mockCritique } from "./livepeer.js";
 import { mentionedEntities, buildPrompt } from "./canon.js";
-import { Run, addRun, listRuns, staleRefs } from "./dkg.js";
+import { Run, addRun, listRuns, listEntities, staleRefs } from "./dkg.js";
 
 /**
  * The orchestration layer — where canon changes what the app does.
@@ -21,7 +21,7 @@ export async function renderScene(
   useCanon: boolean,
   index: number,
 ): Promise<Run> {
-  const entities = mentionedEntities(scene.text);
+  const entities = await mentionedEntities(scene.text);
   const prompt = buildPrompt(scene.text, entities, useCanon);
   const canonRefs = entities.map((e) => ({ entityId: e.id, version: e.version }));
 
@@ -68,7 +68,7 @@ export async function renderScene(
     critique,
     at: new Date().toISOString(),
   };
-  addRun(run);
+  await addRun(run);
   return run;
 }
 
@@ -85,9 +85,11 @@ export async function renderScenes(
 
 /** Correction propagation: re-render ONLY scenes whose canon has since changed. */
 export async function rerenderStale(): Promise<Run[]> {
+  const entities = await listEntities();
   const latestByScene = new Map<string, Run>();
-  for (const r of listRuns()) latestByScene.set(r.sceneId, r);
-  const stale = [...latestByScene.values()].filter((r) => staleRefs(r).length > 0);
+  const runs = (await listRuns()).sort((a, b) => a.at.localeCompare(b.at));
+  for (const r of runs) latestByScene.set(r.sceneId, r);
+  const stale = [...latestByScene.values()].filter((r) => staleRefs(r, entities).length > 0);
   const out: Run[] = [];
   for (let i = 0; i < stale.length; i++) {
     out.push(

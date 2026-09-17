@@ -11,33 +11,33 @@ import { Entity, listEntities, createEntity } from "./dkg.js";
  * same models, no memory — drift is what you get.
  */
 
-export function seedIfEmpty() {
-  if (listEntities().length > 0) return;
-  createEntity({
+export async function seedIfEmpty() {
+  if ((await listEntities()).length > 0) return;
+  await createEntity({
     kind: "character",
     name: "Maya",
     description:
       "Maya Okafor: mid-30s, dark brown skin, close-cropped black curls, small gold hoop earrings, faded red bomber jacket, worn white sneakers, carries a brass pocket compass on a chain",
   });
-  createEntity({
+  await createEntity({
     kind: "character",
     name: "Biscuit",
     description:
       "Biscuit the cat: plump orange tabby, white front paws, notched left ear, blinks slowly when calm",
   });
-  createEntity({
+  await createEntity({
     kind: "location",
     name: "The Perch",
     description:
       "The Perch, Maya's rooftop flat: mustard-yellow kitchen wall, hanging pothos plants, bay window facing the harbor cranes, mismatched mugs on a driftwood shelf",
   });
-  createEntity({
+  await createEntity({
     kind: "prop",
     name: "Compass",
     description:
       "Maya's brass pocket compass: engraving of two flashes on the case, glass cracked over north, warm patina, hangs from a chain",
   });
-  createEntity({
+  await createEntity({
     kind: "fact",
     name: "Lighthouse rule",
     description:
@@ -46,10 +46,10 @@ export function seedIfEmpty() {
 }
 
 /** Find entities mentioned as @tokens. Matches slug or name, case-insensitive. */
-export function mentionedEntities(sceneText: string): Entity[] {
+export async function mentionedEntities(sceneText: string): Promise<Entity[]> {
   const tokens = sceneText.match(/@[a-z0-9-]+/gi) ?? [];
   const wanted = tokens.map((t) => t.slice(1).toLowerCase());
-  return listEntities().filter((e) => {
+  return (await listEntities()).filter((e) => {
     const idSlug = e.id.replace(/^[a-z]+-/, "");
     return wanted.some((w) => w === idSlug || w === e.name.toLowerCase());
   });

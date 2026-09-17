@@ -39,9 +39,10 @@ function renderEntities() {
 
 function renderRuns() {
   if (!state.runs.length) return;
-  // latest run per scene, newest last
+  // latest run per scene, newest last — SPARQL order is arbitrary, sort by time
   const latest = new Map();
-  for (const r of state.runs) latest.set(r.sceneId, r);
+  for (const r of [...state.runs].sort((a, b) => a.at.localeCompare(b.at)))
+    latest.set(r.sceneId, r);
   $("#run-list").innerHTML = [...latest.values()]
     .map((r) => {
       const score = r.critique.score < 0 ? "—" : r.critique.score.toFixed(2);
