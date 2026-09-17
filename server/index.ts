@@ -13,7 +13,7 @@ import {
   EntityKind,
 } from "./dkg.js";
 import { seedIfEmpty, SEED_SCENES } from "./canon.js";
-import { renderScenes, rerenderStale } from "./render.js";
+import { renderScenes, rerenderStale, regenerateAnchor } from "./render.js";
 
 const app = express();
 app.use(express.json({ limit: "2mb" }));
@@ -57,6 +57,15 @@ app.patch("/api/canon/:id", async (req, res) => {
   if (!updated) {
     res.status(404).json({ error: "entity not found" });
     return;
+  }
+  // Corrections propagate visually: a canon edit regenerates the anchor sheet.
+  if (config.livepeer.mode === "real" && updated.kind !== "fact") {
+    try {
+      const anchorUrl = await regenerateAnchor(updated);
+      if (anchorUrl) updated.anchorUrl = anchorUrl;
+    } catch (err) {
+      console.warn("anchor regeneration failed:", err);
+    }
   }
   res.json(updated);
 });

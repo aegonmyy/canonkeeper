@@ -138,6 +138,14 @@ class FileBackend {
     this.runs.push(run);
     this.persist();
   }
+
+  async setAnchorUrl(id: string, url: string) {
+    const e = this.entities.find((x) => x.id === id);
+    if (e) {
+      e.anchorUrl = url;
+      this.persist();
+    }
+  }
 }
 
 // ---------- http backend (DKG edge node) ----------
@@ -229,8 +237,13 @@ class HttpBackend {
         e.kind = o as EntityKind;
         e["@type"] = o[0].toUpperCase() + o.slice(1);
       } else if (p === PRED("current-version")) e.version = Math.max(e.version, Number(o));
-      else if (p === PRED("anchor-url")) e.anchorUrl = o;
-      else {
+      else if (p.startsWith(PRED("anchor-url-v"))) {
+        const v = Number(p.slice(PRED("anchor-url-v").length));
+        if (v >= (e as Entity & { _anchorV?: number })._anchorV!) {
+          (e as Entity & { _anchorV?: number })._anchorV = v;
+          e.anchorUrl = o;
+        }
+      } else {
         const m = p.match(/\/predicate\/v(\d+)-description$/);
         if (m) e.history.push({ version: Number(m[1]), description: o, at: "" });
       }
@@ -304,7 +317,11 @@ class HttpBackend {
       { subject: entityIri(e.id), predicate: PRED("updated-at"), object: lit(historyEntry.at) },
     ];
     if (e.anchorUrl)
-      quads.push({ subject: entityIri(e.id), predicate: PRED("anchor-url"), object: e.anchorUrl });
+      quads.push({
+        subject: entityIri(e.id),
+        predicate: PRED(`anchor-url-v${e.version}`),
+        object: e.anchorUrl,
+      });
     return quads;
   }
 
@@ -353,6 +370,15 @@ class HttpBackend {
       });
     }
     await this.mutate(quads);
+  }
+
+  /** Attach (or replace) the entity's visual anchor — versioned, like descriptions. */
+  async setAnchorUrl(id: string, url: string) {
+    const current = (await this.loadEntities()).find((x) => x.id === id);
+    if (!current) return;
+    await this.mutate([
+      { subject: entityIri(id), predicate: PRED(`anchor-url-v${current.version}`), object: url },
+    ]);
   }
 
   /** Mint the canon on Verifiable Memory — returns the UAL. Needs gas+TRAC (faucet). */
@@ -405,6 +431,10 @@ export async function createEntity(input: {
 
 export async function updateEntity(id: string, description: string): Promise<Entity | undefined> {
   return be().updateEntity(id, description);
+}
+
+export async function setAnchorUrl(id: string, url: string) {
+  return be().setAnchorUrl(id, url);
 }
 
 export async function addRun(run: Run) {
