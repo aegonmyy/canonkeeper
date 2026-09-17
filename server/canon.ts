@@ -45,14 +45,20 @@ export async function seedIfEmpty() {
   });
 }
 
-/** Find entities mentioned as @tokens. Matches slug or name, case-insensitive. */
+/** Find entities mentioned as @tokens — in mention order (deterministic:
+ *  the cast and the grader always key off the first-mentioned character). */
 export async function mentionedEntities(sceneText: string): Promise<Entity[]> {
   const tokens = sceneText.match(/@[a-z0-9-]+/gi) ?? [];
   const wanted = tokens.map((t) => t.slice(1).toLowerCase());
-  return (await listEntities()).filter((e) => {
-    const idSlug = e.id.replace(/^[a-z]+-/, "");
-    return wanted.some((w) => w === idSlug || w === e.name.toLowerCase());
-  });
+  const all = await listEntities();
+  const out: Entity[] = [];
+  for (const w of wanted) {
+    const e = all.find(
+      (x) => x.id.replace(/^[a-z]+-/, "") === w || x.name.toLowerCase() === w,
+    );
+    if (e && !out.includes(e)) out.push(e);
+  }
+  return out;
 }
 
 export function buildPrompt(sceneText: string, entities: Entity[], useCanon: boolean): string {

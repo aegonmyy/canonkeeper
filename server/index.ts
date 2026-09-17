@@ -30,11 +30,14 @@ app.get("/api/state", async (_req, res) => {
     entities,
     runs: (await listRuns()).map((r) => ({
       ...r,
-      stale: staleRefs(r, entities).map((ref) => ({
-        entityId: ref.entityId,
-        renderedVersion: ref.version,
-        currentVersion: currentVersions.get(ref.entityId) ?? ref.version,
-      })),
+      // Control arms deliberately ignore canon — staleness doesn't apply.
+      stale: r.useCanon
+        ? staleRefs(r, entities).map((ref) => ({
+            entityId: ref.entityId,
+            renderedVersion: ref.version,
+            currentVersion: currentVersions.get(ref.entityId) ?? ref.version,
+          }))
+        : [],
     })),
   });
 });

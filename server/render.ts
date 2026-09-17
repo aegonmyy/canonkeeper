@@ -171,7 +171,9 @@ export async function rerenderStale(): Promise<Run[]> {
   const latestByScene = new Map<string, Run>();
   const runs = (await listRuns()).sort((a, b) => a.at.localeCompare(b.at));
   for (const r of runs) latestByScene.set(r.sceneId, r);
-  const stale = [...latestByScene.values()].filter((r) => staleRefs(r, entities).length > 0);
+  const stale = [...latestByScene.values()].filter(
+    (r) => r.useCanon && staleRefs(r, entities).length > 0,
+  );
   const out: Run[] = [];
   for (let i = 0; i < stale.length; i++) {
     out.push(
