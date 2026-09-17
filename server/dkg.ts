@@ -239,7 +239,8 @@ class HttpBackend {
       } else if (p === PRED("current-version")) e.version = Math.max(e.version, Number(o));
       else if (p.startsWith(PRED("anchor-url-v"))) {
         const v = Number(p.slice(PRED("anchor-url-v").length));
-        if (v >= (e as Entity & { _anchorV?: number })._anchorV!) {
+        const prev = ((e as Entity & { _anchorV?: number })._anchorV ?? -1) as number;
+        if (v >= prev) {
           (e as Entity & { _anchorV?: number })._anchorV = v;
           e.anchorUrl = o;
         }
