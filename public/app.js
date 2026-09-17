@@ -21,18 +21,24 @@ function renderModes() {
 function renderEntities() {
   $("#entity-list").innerHTML = state.entities
     .map((e) => {
-      const editing = e._editing ? "editing" : "";
-      return `<div class="entity ${editing}" data-id="${esc(e.id)}">
+      const body = e._editing
+        ? `<textarea class="edit-desc" rows="4">${esc(e.description)}</textarea>
+           <div class="entity-actions">
+             <button class="link save">save (v${e.version} → v${e.version + 1})</button>
+             <button class="link cancel">cancel</button>
+           </div>`
+        : `<div class="entity-body">${esc(e.description)}</div>
+           <div class="entity-actions">
+             <button class="link edit">edit canon</button>
+           </div>`;
+      return `<div class="entity ${e._editing ? "editing" : ""}" data-id="${esc(e.id)}">
         <div class="entity-head">
           <span class="chip kind-${esc(e.kind)}">${esc(e.kind)}</span>
           <strong>${esc(e.name)}</strong>
           <span class="version">v${e.version}</span>
         </div>
         ${e.anchorUrl ? `<img class="entity-anchor" src="${e.anchorUrl}" alt="canon anchor" loading="lazy">` : ""}
-        <div class="entity-body">${esc(e.description)}</div>
-        <div class="entity-actions">
-          <button class="link edit">edit canon</button>
-        </div>
+        ${body}
       </div>`;
     })
     .join("");
@@ -150,21 +156,54 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   };
 
-  // Entity editing: prompt-based for v0 UI (inline editor if time allows)
+  // Entity editing: inline editor — a canon edit bumps the version and
+  // stales every canon-ON render that cites the old one.
   $("#entity-list").addEventListener("click", async (ev) => {
-    const btn = ev.target.closest(".edit");
-    if (!btn) return;
-    const card = btn.closest(".entity");
+    const card = ev.target.closest(".entity");
+    if (!card) return;
     const ent = state.entities.find((e) => e.id === card.dataset.id);
-    const next = prompt(`Edit canon for ${ent.name} (this bumps v${ent.version} → v${ent.version + 1} and stales scenes rendered against it):`, ent.description);
-    if (next === null || next === ent.description) return;
-    await fetch(`/api/canon/${encodeURIComponent(ent.id)}`, {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ description: next }),
-    });
-    await refresh();
+    if (!ent) return;
+
+    if (ev.target.closest(".edit")) {
+      ent._editing = true;
+      renderEntities();
+      card.querySelector(".edit-desc")?.focus();
+      return;
+    }
+    if (ev.target.closest(".cancel")) {
+      ent._editing = false;
+      renderEntities();
+      return;
+    }
+    if (ev.target.closest(".save")) {
+      const next = card.querySelector(".edit-desc")?.value ?? ent.description;
+      ent._editing = false;
+      if (next === ent.description) {
+        renderEntities();
+        return;
+      }
+      card.querySelector(".save").disabled = true;
+      await fetch(`/api/canon/${encodeURIComponent(ent.id)}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ description: next }),
+      });
+      await refresh();
+      return;
+    }
   });
+
+  $("#publish-ual").onclick = async (ev) => {
+    ev.target.disabled = true;
+    ev.target.textContent = "publishing…";
+    const res = await fetch("/api/publish", { method: "POST" });
+    const body = await res.json();
+    ev.target.disabled = false;
+    ev.target.textContent = "Publish canon → Verifiable Memory (UAL)";
+    $("#ual-line").textContent = body.ual
+      ? `UAL: ${body.ual} (tx ${String(body.txHash ?? "").slice(0, 18)}…)`
+      : `publish failed: ${body.error ?? "unknown"}`;
+  };
 
   await refresh();
 });

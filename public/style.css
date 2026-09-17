@@ -46,6 +46,20 @@ h2 small { text-transform: none; letter-spacing: 0; font-weight: 400; opacity: 0
 .entity-head strong { font-size: 14px; }
 .version { margin-left: auto; font: 11px var(--mono); color: var(--accent); }
 .entity-body { color: var(--muted); font-size: 12.5px; margin: 6px 0; }
+.entity.editing { border-color: var(--accent); }
+.entity textarea.edit-desc {
+  width: 100%;
+  background: #101018;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: 12px var(--mono);
+  margin-top: 6px;
+}
+.publish-box { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+.publish-box button { width: 100%; font-size: 12px; padding: 6px 10px; }
+#ual-line { margin-top: 6px; word-break: break-all; }
 .entity-actions .link { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 12px; padding: 0; }
 .add-entity summary { color: var(--muted); cursor: pointer; font-size: 13px; margin-top: 6px; }
 .add-entity form { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
