@@ -1,131 +1,91 @@
-# CanonKeeper — demo walkthrough script (~3:30)
+# CanonKeeper — narration track for canonkeeper-walkthrough.mp4 (2:21)
 
-For Aminu. Every action is real state already in the app — nothing is faked.
-Read the narration lines as guides, not teleprompter; say it however feels
-natural. The numbers on screen do the persuading.
+Talk like you're showing a friend, not reading a script. If you stumble,
+keep going — the screen is the proof, your voice is just guiding the eye.
+Pause when the stage chip changes so people can look first. The numbers
+on screen do the heavy lifting; you don't have to sell anything.
 
-## Pre-flight (before hitting record)
+Trim, ad-lib, skip lines. Nothing here is mandatory — it's scaffolding.
+
+## Pre-flight
 
 ```bash
-# 1. DKG node up (it survives reboots — check first)
-dkg start 2>/dev/null || echo "already running"; curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:9200/ui  # want 200
-
-# 2. App in real mode
+dkg start 2>/dev/null; curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:9200/ui  # want 200
 cd /workspaces/workspace/canonkeeper
 DKG_MODE=http DKG_TOKEN=$(dkg auth show | tail -1) LIVEPEER_MODE=real PORT=3111 npm start
 ```
+Open `http://localhost:3111`, clean browser, hit record. The video file is
+already captured (`docs/demo/canonkeeper-walkthrough.mp4`) — you can also
+just play that and narrate over it in editing instead of recording live.
 
-- Open `http://localhost:3111` in a clean browser window (no bookmarks bar,
-  few tabs). Full-screen or near it.
-- Have the README open in a second tab (you'll flash it at the end).
-- Record with any tool (OBS, VS Code screen recorder, QuickTime). 1366x850+.
-- Mic check. Speak slower than feels normal.
-- **Budget note:** the live part of this demo costs about $0.30–0.50 of the
-  shared $100/day allowance. Fine.
+## Narration — synced to the stage chip
 
-## The script
+### 0:00 — chip: `1/6 · THE CANON`
 
-### 0:00 — Hook (canon panel on screen)
+> So — the thing about AI video is, you ask for the same character in scene
+> one and scene ten, and you get two completely different people. Every
+> single time. There's just no memory between generations.
 
-> "AI video has a continuity problem. Ask for the same character in scene one
-> and scene ten, and you get two different people. On a film set there's a
-> whole job for this — the script supervisor, the person who makes sure the
-> jacket stays red between shots. AI video doesn't have one.
-> This is CanonKeeper. That's the job it does."
+> What we built is basically a memory for that. This panel here is the
+> canon — every character, prop, location in the story. And it's not
+> sitting in our database, it's on a decentralized knowledge graph, so
+> it's verifiable. Anyone can check it.
 
-**Do:** point/cursor-hover over the canon panel cards as you talk.
+### 0:17 — chip: `2/6 · ANCHOR SHEETS`
 
-### 0:20 — The canon lives on the knowledge graph
+> Each one of these has an anchor sheet. Like, this is Maya — that image
+> is generated once, and it becomes the reference. Every time we render
+> Maya, she's drawn *from this*, not from the model just kind of guessing.
 
-> "Every character, prop, location and fact lives as a Knowledge Asset on the
-> OriginTrail DKG — versioned, queryable. These descriptions aren't prompt
-> decoration: they're the canonical record. And these images —"
+### 0:30 — chip: `3/6 · A/B EVIDENCE`
 
-**Do:** hover Maya's card — anchor thumbnail, `v4` badge.
+> Okay, this is the part I really want you to see. Same scene, same
+> model, same judge. The only difference is whether it checked the canon
+> first.
 
-> "— are anchor sheets. When we render a scene, Maya is generated *from this
-> reference*, not from wishful thinking."
+> Left side — checked. Scores point-nine-six to one-point-oh. Passes
+> clean.
 
-### 0:50 — The A/B (money shot — slow down here)
+> Right side — didn't check. Zero point zero zero. The judge literally
+> wrote, "completely different characters, and a dog." There's no dog
+> in the story. *That's* what no memory looks like.
 
-**Do:** scroll to the Evidence panel. Give it a beat before speaking.
+### 0:50 — chip: `4/6 · LIVE CANON EDIT`
 
-> "Here's the same scene, rendered twice. Same text, same models, same judge.
-> The only difference: the left one consulted the canon — verbatim continuity
-> tokens in the prompt, plus the anchor passed as a character cast. The right
-> one didn't.
-> Left: zero-nine-six to one-zero-zero — pass. Right: zero-point-zero-zero —
-> fail. The judge's actual note on the right: 'completely different characters
-> — and a dog.'
-> That's the Track 2 question — does the knowledge graph materially change
-> what the app does — answered in one screen."
+> So now let's change something. Say the prop department breaks the
+> compass — the glass shatters, the needle's gone.
 
-### 1:40 — Live edit (the part you do live)
+> *(edit, save)*
 
-**Do:** scroll back to canon. Click **edit canon** on the **Compass** card.
+> That just bumped the canon to version three.
 
-> "Now the part I like most. Say the prop department changes the compass —
-> the cracked glass shatters completely."
+### 1:15 — chip: `5/6 · CORRECTION PROPAGATES`
 
-**Do:** edit the description — change
-`glass cracked over north` → `glass fully shattered, needle stuck at north`.
-Click **save**. (The anchor regenerates — ~15 seconds. Narrate over it:)
+> And here's the bit I think is genuinely cool. The system knows exactly
+> which renders were made against the old compass. Just two scenes. It
+> flags *those*, and only those, as stale. I don't re-render the whole
+> series — I re-render the two shots that are now wrong.
 
-> "Saving bumps the canon to version two — and watch, the anchor sheet
-> regenerates itself to match. Corrections propagate visually too."
+### 1:30 — chip: `6/6 · RE-RENDER STALE`
 
-### 2:20 — Stale propagation
+> Each one pulls the new canon, uses the new anchor, and gets graded
+> again by the vision judge. All of that — the generation, the character
+> casting, the critique — is one Livepeer API.
 
-**Do:** scroll slightly to show the stale banner.
+### 1:50 — chip: `✓ VERIFIED`
 
-> "And here's the ledger paying off. The system knows exactly which renders
-> cited the old compass — two scenes — and only those are flagged stale.
-> Everything else is untouched. I'm not re-rendering the series; I'm
-> re-rendering the *two shots that are now wrong*."
+> And there it is. Both generations are sitting in the ledger on the
+> knowledge graph now. Anyone can query which render was made against
+> which version, and what changed, when. Total cost to build all of
+> this — under a dollar on Livepeer's network.
 
-### 2:30 — Re-render (takes ~1 min for 2 scenes — narrate over it)
+> So — CanonKeeper. It's a script supervisor for AI video, with a
+> tamper-evident notebook. Thanks.
 
-**Do:** click **Re-render stale scenes**.
+## If something breaks
 
-> "Each re-render pulls the new canon, casts the new anchor, and gets graded
-> again by the vision judge. Everything Livepeer Agent does here — the
-> generation, the character casting, the critique — is one API, one key."
-
-**Do:** when it completes, scroll the evidence panel: the two scenes now show
-fresh timestamps and cite `compass v2`.
-
-> "Done — same series, corrected canon, and the run ledger on the DKG now
-> shows both generations side by side. Anyone can query what changed, when,
-> and which renders were made against which version."
-
-### 3:10 — Wrap
-
-**Do:** flash the README tab briefly (the architecture diagram + A/B table).
-
-> "Quick honesty section: one character cast per render today, the critique is
-> anchor-relative, and the on-chain UAL publish is one click away — the
-> testnet faucet's been dry, that's on their infra, the off-chain assertion
-> already has a DID.
-> Total build cost: under a dollar on Livepeer's shared demo credit.
-> CanonKeeper — a script supervisor for AI video, with a tamper-evident
-> notebook. Thanks."
-
-## Fallbacks (if something breaks live)
-
-- **A render hangs:** the existing evidence carries the story — keep talking,
-  scroll on. The A/B panel needs nothing live.
-- **The edit feels slow:** that's the anchor regenerating — it's supposed to
-  show; mention it.
-- **Total failure:** play `docs/demo/canonkeeper-demo.mp4` as backup and
-  narrate over it — same beats.
-- Nervous? The state never resets itself — you can rehearse the whole flow
-  twice for ~$0.50 before recording the take.
-
-## Why this shape (for your head, not the camera)
-
-Judges score: does it work end-to-end (the A/B panel is already-rendered
-proof), does the DKG change behavior (the A/B *is* that, isolated), Livepeer
-doing meaningful work (generation + cast + critique), product judgment (small
-scope, reliable loop), continuation potential (any serialized content team).
-The script hits each one once. Don't add more — three and a half minutes of
-"it works" beats seven of features.
+The video file is already captured and on the repo. Worst case, play
+`docs/demo/canonkeeper-walkthrough.mp4` and narrate over it in editing —
+same beats, same stage chip, zero live risk. The state in the app never
+resets itself, so you can also just re-run the live flow; it costs about
+fifty cents a take.
