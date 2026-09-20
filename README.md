@@ -68,9 +68,10 @@ Storyboard (@maya, @the-perch …)              ┌─────────�
   (that's the A/B above).
 - **Verify**: version history accumulates as triples (`v1-description`,
   `v2-description`, …), so any consumer can SPARQL exactly what canon any
-  render was made against, and what changed since. Publishing to Verifiable
-  Memory (chain-anchored UAL) is one `POST /api/publish` — blocked only on the
-  testnet faucet's ETH pool being dry at time of writing (see Limitations).
+  render was made against, and what changed since. The canon is published to
+  Verifiable Memory on the Base Sepolia testnet:
+  **UAL: `did:dkg:base:84532/0xec101b19f62667223ed8b83f08a7edcca78fb0a2/1`**
+  (tx `0x674948a668332895a937d6f7ab1de19ba1d522612f1665e72d9d546664c600a1`).
 
 ## Run it
 
@@ -100,10 +101,8 @@ this demo: **$0.60** of the shared $100/day allowance.
 
 ## Honest limitations
 
-- **UAL minting pending**: the euphoria testnet faucet's ETH hot-wallet was
-  dry throughout the build (their infrastructure, retried repeatedly —
-  `scripts/fund.sh`). The canon's assertion URI exists off-chain; the
-  chain-anchored UAL lands as soon as the faucet refills.
+- **UAL minted**: the canon Knowledge Asset is published on Base Sepolia
+  testnet at `did:dkg:base:84532/0xec101b19f62667223ed8b83f08a7edcca78fb0a2/1`.
 - **One cast per render**: Livepeer's `cast` takes a single character
   reference, so multi-character scenes rely on verbatim tokens for everyone
   but the first-mentioned character (the grader keys off that one too).

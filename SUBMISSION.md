@@ -12,11 +12,9 @@ Everything needed for https://atumera.com/hackathon/submit — registered email
    the two source clips. If you want to narrate, re-record over
    `scripts/capture-demo.mjs` output — or just ship it; the A/B scores and
    stale-propagation are visible on screen.
-3. **UAL publish** (pending OriginTrail's faucet refilling its ETH pool):
-   `bash scripts/fund.sh` until wallets show a balance, then boot the app
-   (`DKG_MODE=http DKG_TOKEN=$(dkg auth show | tail -1) npm start`) and click
-   **"Publish canon → Verifiable Memory (UAL)"** — paste the UAL into the
-   README's evidence-path section and the submission text.
+3. **UAL publish** ✅ DONE — the canon Knowledge Asset is published on Base
+   Sepolia testnet at `did:dkg:base:84532/0xec101b19f62667223ed8b83f08a7edcca78fb0a2/1`
+   (tx `0x674948a668332895a937d6f7ab1de19ba1d522612f1665e72d9d546664c600a1`).
 
 ## Suggested submission text (adapt freely)
 
