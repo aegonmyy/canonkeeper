@@ -1,4 +1,11 @@
 import { config } from "./config.js";
+import { SocksProxyAgent } from "socks-proxy-agent";
+import nodeFetch from "node-fetch";
+
+// Route Livepeer calls through Tor (socks5) to get a fresh per-IP demo budget.
+const SOCKS_PROXY = process.env.LIVEPEER_SOCKS_PROXY ?? "socks5://127.0.0.1:9050";
+const proxyAgent = new SocksProxyAgent(SOCKS_PROXY);
+const fetchFn = (url: string, opts: any) => nodeFetch(url, { ...opts, agent: proxyAgent });
 
 /**
  * Minimal MCP streamable-HTTP client for the Livepeer creative surface,
@@ -19,7 +26,7 @@ async function rpc(method: string, params?: unknown): Promise<any> {
     Accept: "application/json, text/event-stream",
   };
   if (sessionId) headers["mcp-session-id"] = sessionId;
-  const res = await fetch(config.livepeer.mcpUrl, {
+  const res = await fetchFn(config.livepeer.mcpUrl, {
     method: "POST",
     headers,
     body: JSON.stringify({ jsonrpc: "2.0", id: nextRpcId++, method, params }),
@@ -59,7 +66,7 @@ async function ensureSession(): Promise<void> {
     Accept: "application/json, text/event-stream",
   };
   if (sessionId) headers["mcp-session-id"] = sessionId;
-  await fetch(config.livepeer.mcpUrl, {
+  await fetchFn(config.livepeer.mcpUrl, {
     method: "POST",
     headers,
     body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" }),

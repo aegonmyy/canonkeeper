@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2",
+    "socks-proxy-agent": "^10.1.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
