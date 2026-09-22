@@ -150,7 +150,7 @@ class FileBackend {
 
 // ---------- http backend (DKG edge node) ----------
 
-const CG = "canonkeeper-demo";
+const CG = "canonkeeper-live";
 const KA = "canon";
 
 class HttpBackend {
