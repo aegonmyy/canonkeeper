@@ -21,21 +21,70 @@ drift between scenes. CanonKeeper is that missing person:
 Livepeer's creative harness keeps a character consistent *within* one job.
 CanonKeeper keeps it consistent *across* jobs, sessions, and teams — verifiably.
 
+---
+
+## Correction propagation (the key feature)
+
+This is what makes the knowledge graph materially change the app's behavior —
+not just "better prompts" but a structural mechanism that would be impossible
+without the DKG:
+
+1. **Edit the canon** — change the Compass description ("glass cracked" →
+   "glass fully shattered, needle missing"). The canon bumps to v2.
+2. **The anchor regenerates** — the reference image for the Compass is
+   re-generated to match the new description. Corrections propagate visually.
+3. **Stale detection** — the system queries the run ledger on the DKG: "which
+   renders cited compass v1?" It finds exactly two scenes. Only those are
+   flagged stale. The other four scenes are untouched.
+4. **Re-render stale** — click one button. Each stale scene pulls the new canon
+   (v2), uses the new anchor, and gets re-graded by the vision judge. The
+   series is corrected without re-rendering everything.
+
+Without the knowledge graph, there is no ledger to query — you'd have no way to
+know which renders were made against which version. The DKG IS the mechanism.
+
 ## The A/B (measured, not asserted)
 
-Same scene text, same models, same judge (`critique_shot` against the same
-canon anchor). The only variable is whether the render consults the knowledge
-graph:
+Same scene text, same model (flux-schnell on Livepeer's decentralized GPU
+network), same judge (`critique_shot` / Gemini Vision against the same canon
+anchor). The only variable is whether the render consults the knowledge graph:
 
 | Arm | Score | Judge's note |
 |---|---|---|
-| canon ON (`cast` + verbatim continuity tokens) | **0.96–1.00** | "compass necklace missing" (minor wardrobe note) |
+| canon ON (`cast` + verbatim continuity tokens) | **0.99–1.00** | "compass necklace missing" (minor wardrobe note) |
 | canon OFF (raw scene text) | **0.00 FAIL** | "completely different characters and a dog, none of whom match the anchor" |
 
-Six-scene storyboard, canon ON: 0.97 / 1.00 / 1.00 / 1.00 / 0.99 / 0.97.
-After editing the canon (jacket red → navy), all canon-ON renders were flagged
-stale (cited v2, canon now v3), the anchor sheet regenerated itself, and
-`rerender-stale` re-rendered the series against v3.
+Six-scene storyboard, canon ON: 1.00 / 1.00 / 1.00 / 1.00 / 0.99 / 0.99.
+Control renders (canon OFF): 0.00 / 0.00.
+
+## The run ledger (audit trail on the DKG)
+
+Every render is written back to the knowledge graph as a **run** — a Knowledge
+Asset that records:
+
+- The exact prompt sent to Livepeer
+- The result URL (hosted on Livepeer's network)
+- The critique score and judge's note
+- **Which canon entities were cited** (`pred:cites → entity IRI`) and **which
+  version** (`pred:rendered-version/<entityId>`)
+
+This means any consumer can **SPARQL-query** which render was made against
+which canon version, at any point in time. When the canon changes, the ledger
+is what makes stale detection possible — it's the structural difference between
+"better prompts" and "the knowledge graph materially changes what the app does."
+
+## On-chain evidence (UAL)
+
+The canon Knowledge Asset is published to **Verifiable Memory** on the Base
+Sepolia testnet — permanently anchored on-chain:
+
+> **UAL: `did:dkg:base:84532/0xec101b19f62667223ed8b83f08a7edcca78fb0a2/1`**
+> tx: `0x674948a668332895a937d6f7ab1de19ba1d522612f1665e72d9d546664c600a1`
+
+A UAL (Universal Asset Locator) is like a URL but for verifiable knowledge on
+the blockchain. Anyone can resolve it and cryptographically verify that the
+canon existed at this state — the version history, the entities, the
+descriptions. This is the "verify" step in the Track 2 evidence path.
 
 ## Architecture
 
@@ -60,18 +109,15 @@ Storyboard (@maya, @the-perch …)              ┌─────────�
 
 ## Evidence path (Track 2)
 
-- **Create**: entities and runs are written via the canonical Knowledge Asset
-  lifecycle (`wm/write` → `swm/share`; the asset's assertion URI is
-  `did:dkg:base:84532/0xec10…/0`).
+- **Create**: entities and runs are written as Knowledge Assets on the DKG
+  via the canonical lifecycle (`wm/write`).
 - **Retrieve**: every render resolves @mentions and reads entity state from
-  the graph — the app's behavior *changes* because of what it retrieves
-  (that's the A/B above).
-- **Verify**: version history accumulates as triples (`v1-description`,
+  the graph via SPARQL — the app's behavior *changes* because of what it
+  retrieves (that's the A/B above).
+- **Verify**: version history accumulates as RDF triples (`v1-description`,
   `v2-description`, …), so any consumer can SPARQL exactly what canon any
-  render was made against, and what changed since. The canon is published to
-  Verifiable Memory on the Base Sepolia testnet:
-  **UAL: `did:dkg:base:84532/0xec101b19f62667223ed8b83f08a7edcca78fb0a2/1`**
-  (tx `0x674948a668332895a937d6f7ab1de19ba1d522612f1665e72d9d546664c600a1`).
+  render was made against. The canon is published on-chain with a UAL (see
+  above).
 
 ## Run it
 
@@ -91,18 +137,16 @@ Requires the DKG edge node (`npm i -g @origintrail-official/dkg`, config in
 
 | Tool | Role in CanonKeeper |
 |---|---|
-| `create_media` | anchors (reference sheets) + scene renders, with `cast:{reference_url, name}` for character consistency |
-| `critique_shot` | the drift judge — grades every render (both A/B arms) against the canon anchor |
+| `create_media` | anchors (reference sheets) + scene renders, with `cast:{reference_url, name}` for character consistency. Model: **flux-schnell** via `prefer_fast` |
+| `critique_shot` | the drift judge — **Gemini Vision** grades every render (both A/B arms) against the canon anchor. Sub-scores: face, wardrobe, palette, marks |
 | `get_pricing`, `spend_cap`, `get_cost_report` | budget guardrails on the shared demo allowance |
 
 Every render is capped (`max_cost_usd`), routed cheap (`prefer_fast` →
 flux-schnell), and tagged (`session_id`) for attribution. Total spend building
-this demo: **$0.60** of the shared $100/day allowance.
+this demo: **<$2** of the shared $100/day allowance.
 
 ## Honest limitations
 
-- **UAL minted**: the canon Knowledge Asset is published on Base Sepolia
-  testnet at `did:dkg:base:84532/0xec101b19f62667223ed8b83f08a7edcca78fb0a2/1`.
 - **One cast per render**: Livepeer's `cast` takes a single character
   reference, so multi-character scenes rely on verbatim tokens for everyone
   but the first-mentioned character (the grader keys off that one too).
@@ -110,11 +154,12 @@ this demo: **$0.60** of the shared $100/day allowance.
   interpretation of the description, not a ground-truth photo.
 - **Critique is anchor-relative**: it measures consistency with the canon
   anchor, not general aesthetic quality.
-- **Shared demo bearer**: `get_cost_report` scope mixes all hackers' jobs;
-  our accounting above comes from `spend_cap` readings.
-- **SWM, not VM, by default**: day-to-day canon lives in Shared Working
-  Memory (free, gossip-replicated). On-chain Verifiable Memory is the explicit
-  publish step.
+- **Working Memory by default**: day-to-day canon lives in Working Memory
+  (local, free). The on-chain UAL was published to Verifiable Memory on Base
+  Sepolia testnet (see above); SWM (gossip-replicated) had a post-commit
+  issue during the build so the app currently uses WM for live mutations.
+- **Shared demo bearer**: the keyless Livepeer endpoint is per-IP metered;
+  budget store availability is intermittent.
 
 ## Status
 
