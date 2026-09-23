@@ -150,7 +150,7 @@ class FileBackend {
 
 // ---------- http backend (DKG edge node) ----------
 
-const CG = "canonkeeper-live";
+const CG = "canonkeeper-demo23";
 const KA = "canon";
 
 class HttpBackend {
@@ -186,33 +186,19 @@ class HttpBackend {
     }
   }
 
-  /** pull-from → write → share. The canonical mutation cycle. */
+  /** Write quads to WM. No share/seal — data accumulates in the open draft. */
   private async mutate(quads: Quad[]) {
-    try {
-      await this.req(`/api/knowledge-assets/${KA}/wm/pull-from`, {
-        contextGraphId: CG,
-        layer: "swm",
-        onConflict: "replace",
-      });
-    } catch {
-      /* fresh draft, nothing to pull */
-    }
-    const w = await this.req(`/api/knowledge-assets/${KA}/wm/write`, {
+    return await this.req(`/api/knowledge-assets/${KA}/wm/write`, {
       contextGraphId: CG,
       quads,
     });
-    await this.req(`/api/knowledge-assets/${KA}/swm/share`, {
-      contextGraphId: CG,
-      entities: "all",
-    });
-    return w;
   }
 
   private async sparql(sparql: string): Promise<Record<string, string>[]> {
     const r = await this.req("/api/query", {
       sparql,
       contextGraphId: CG,
-      view: "shared-working-memory",
+      view: "working-memory",
     });
     return r?.result?.bindings ?? [];
   }
